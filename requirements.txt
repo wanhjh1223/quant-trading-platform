@@ -8,3 +8,11 @@ python-dateutil>=2.8.0
 requests>=2.31.0
 python-dotenv>=1.0.0
 loguru>=0.7.0
+
+# 可视化
+streamlit>=1.28.0
+plotly>=5.18.0
+
+# AI模型
+torch>=2.0.0
+scikit-learn>=1.3.0
