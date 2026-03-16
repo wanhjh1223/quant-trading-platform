@@ -1,0 +1,12 @@
+[
+  {
+    "id": "000001_price_above_1773640856",
+    "symbol": "000001",
+    "type": "price_above",
+    "threshold": 15.0,
+    "note": "突破15元",
+    "created_at": "2026-03-16T14:00:56.161335",
+    "triggered": true,
+    "triggered_at": "2026-03-16T14:00:56.162622"
+  }
+]
