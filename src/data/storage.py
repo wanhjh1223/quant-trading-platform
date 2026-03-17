@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 import json
 
-import polars as pl
 import pandas as pd
 from loguru import logger
 
@@ -59,8 +58,7 @@ class DataStore:
     def load_daily_data(
         self,
         ts_code: str,
-        subdir: str = 'daily',
-        use_polars: bool = False
+        subdir: str = 'daily'
     ) -> Optional[pd.DataFrame]:
         """
         加载日线数据
@@ -68,7 +66,6 @@ class DataStore:
         Args:
             ts_code: 股票代码
             subdir: 子目录
-            use_polars: 是否使用Polars加载（更快）
         """
         filename = f"{ts_code.replace('.', '_')}.parquet"
         file_path = self.raw_dir / subdir / filename
@@ -78,18 +75,48 @@ class DataStore:
             return None
         
         try:
-            if use_polars:
-                # Polars加载更快
-                df = pl.read_parquet(file_path).to_pandas()
-            else:
-                df = pd.read_parquet(file_path)
-            
+            df = pd.read_parquet(file_path)
             return df
         except Exception as e:
             logger.error(f"加载数据失败 {ts_code}: {e}")
             return None
     
-    def list_available_stocks(self, subdir: str = 'daily') -> List[str]:
+    def update_daily_data(
+        self,
+        ts_code: str,
+        new_df: pd.DataFrame,
+        subdir: str = 'daily'
+    ) -> Path:
+        """
+        更新日线数据（追加新数据）
+        
+        Args:
+            ts_code: 股票代码
+            new_df: 新增数据DataFrame
+            subdir: 子目录
+        """
+        filename = f"{ts_code.replace('.', '_')}.parquet"
+        file_path = self.raw_dir / subdir / filename
+        
+        if file_path.exists():
+            # 加载现有数据
+            existing_df = self.load_daily_data(ts_code, subdir)
+            if existing_df is not None:
+                # 合并并去重
+                combined = pd.concat([existing_df, new_df], ignore_index=True)
+                if 'trade_date' in combined.columns:
+                    combined = combined.drop_duplicates(subset=['trade_date'])
+                    combined = combined.sort_values('trade_date')
+                df = combined
+            else:
+                df = new_df
+        else:
+            df = new_df
+        
+        # 保存
+        return self.save_daily_data(ts_code, df, subdir)
+    
+    def list_saved_symbols(self, subdir: str = 'daily') -> List[str]:
         """获取已下载的股票列表"""
         data_dir = self.raw_dir / subdir
         if not data_dir.exists():

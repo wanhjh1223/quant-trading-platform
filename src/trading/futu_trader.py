@@ -295,7 +295,8 @@ class MockTrader:
             self.cash += amount
             self.positions[code]['qty'] -= qty
             if self.positions[code]['qty'] == 0:
-                del self.positions[code]
+                self.positions[code]['qty'] = 0  # 保持键存在，设为0
+                self.positions[code]['avg_price'] = 0
         
         order = {
             'order_id': order_id,
